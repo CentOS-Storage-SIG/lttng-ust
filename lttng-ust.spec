@@ -3,14 +3,15 @@
 
 Name:           lttng-ust
 Version:        2.4.1
-Release:        1%{?dist}
+Release:        1%{?dist}.1
 License:        LGPLv2 and GPLv2 and MIT
 Group:          Development/Libraries
 Summary:        LTTng Userspace Tracer library
 URL:            http://lttng.org/ust/
 Source0:        http://lttng.org/files/lttng-ust/%{name}-%{version}.tar.bz2
+Patch0:         lttng-ust-2.4.1-aarch64.patch
 
-BuildRequires:  libuuid-devel texinfo systemtap-sdt-devel libtool
+BuildRequires:  libuuid-devel texinfo systemtap-sdt-devel libtool autoconf automake
 BuildRequires:  userspace-rcu-devel >= 0.7.2
 ExcludeArch:    ppc64le
 
@@ -30,12 +31,16 @@ LTTng userspace tracing
 
 %prep
 %setup -q
+%patch0 -p1 -b .aarch64
 
 %build
 %ifarch s390 s390x
 # workaround rhbz#837572 (ICE in gcc)
 %global optflags %(echo %{optflags} | sed 's/-O2/-O1/')
 %endif
+
+# regen ./configure after patching configure.ac for aarch64
+autoreconf -vif
 
 #Reinitialize libtool with the fedora version to remove Rpath
 libtoolize -cvfi
@@ -76,6 +81,9 @@ rm -vf %{buildroot}%{_libdir}/*.la
 %{_docdir}/%{name}/examples/*
 
 %changelog
+* Thu May 12 2016 François Cami <fcami@fedoraproject.org> - 2.4.1-1.1
+- Fix aarch64 FTBFS 
+
 * Tue May 20 2014 Yannick Brosseau <yannick.brosseau@gmail.com> - 2.4.1-1
 - New upstream bugfix release
 

@@ -1,0 +1,13 @@
+diff -rU4 a/configure.ac b/configure.ac
+--- a/configure.ac	2014-04-08 21:03:07.000000000 +0200
++++ b/configure.ac	2016-05-12 11:58:07.292206960 +0200
+@@ -185,8 +185,9 @@
+ changequote(,)dnl
+ 	i[3456]86)
+ changequote([,])dnl
+ 	  ;;
++	aarch64) ;;
+ 	x86_64) ;;
+ 	amd64) ;;
+ 	powerpc) ;;
+ 	ppc64) ;;
