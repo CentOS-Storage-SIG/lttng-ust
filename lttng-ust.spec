@@ -1,37 +1,33 @@
-
-# fcami - 2.4.1-1 was imported as-is from EPEL 
-
 Name:           lttng-ust
-Version:        2.4.1
-Release:        1%{?dist}.1
+Version:        2.10.0
+Release:        1%{?dist}
 License:        LGPLv2 and GPLv2 and MIT
 Group:          Development/Libraries
 Summary:        LTTng Userspace Tracer library
-URL:            http://lttng.org/ust/
-Source0:        http://lttng.org/files/lttng-ust/%{name}-%{version}.tar.bz2
-Patch0:         lttng-ust-2.4.1-aarch64.patch
+URL:            https://lttng.org
+Source0:        https://lttng.org/files/lttng-ust/%{name}-%{version}.tar.bz2
 
-BuildRequires:  libuuid-devel texinfo systemtap-sdt-devel libtool autoconf automake
-BuildRequires:  userspace-rcu-devel >= 0.7.2
-ExcludeArch:    ppc64le
+BuildRequires:  python
+BuildRequires:  libuuid-devel texinfo
+BuildRequires:  userspace-rcu-devel >= 0.8.0
+BuildRequires:  autoconf automake libtool
 
 %description
-This library may be used by user space applications to generate 
-tracepoints using LTTng.
+This library may be used by user-space applications to generate 
+trace-points using LTTng.
 
 %package -n %{name}-devel
 Summary:        LTTng Userspace Tracer library headers and development files
 Group:          Development/Libraries
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       userspace-rcu-devel systemtap-sdt-devel
+Requires:       userspace-rcu-devel
 
 %description -n %{name}-devel
 This library provides support for developing programs using 
-LTTng userspace tracing
+LTTng user-space tracing
 
 %prep
 %setup -q
-%patch0 -p1 -b .aarch64
 
 %build
 %ifarch s390 s390x
@@ -39,17 +35,10 @@ LTTng userspace tracing
 %global optflags %(echo %{optflags} | sed 's/-O2/-O1/')
 %endif
 
-# regen ./configure after patching configure.ac for aarch64
+# Reinitialize libtool with the fedora version to remove Rpath
 autoreconf -vif
 
-#Reinitialize libtool with the fedora version to remove Rpath
-libtoolize -cvfi
-%configure --docdir=%{_docdir}/%{name} --disable-static --with-sdt
-# --with-java-jdk
-# Java support was disabled in lttng-ust's stable-2.0 branch upstream in
-# http://git.lttng.org/?p=lttng-ust.git;a=commit;h=655a0d112540df3001f9823cd3b331b8254eb2aa
-# We can revisit enabling this when the next major version is released.
-
+%configure --docdir=%{_docdir}/%{name} --disable-static
 make %{?_smp_mflags} V=1
 
 %install
@@ -61,13 +50,19 @@ rm -vf %{buildroot}%{_libdir}/*.la
 
 %files
 %{_libdir}/*.so.*
+%{_mandir}/man3/do_tracepoint.3.gz
 %{_mandir}/man3/lttng-ust.3.gz
 %{_mandir}/man3/lttng-ust-cyg-profile.3.gz
 %{_mandir}/man3/lttng-ust-dl.3.gz
+%{_mandir}/man3/tracef.3.gz
+%{_mandir}/man3/tracelog.3.gz
+%{_mandir}/man3/tracepoint.3.gz
+%{_mandir}/man3/tracepoint_enabled.3.gz
+
 %dir %{_docdir}/%{name}
 %{_docdir}/%{name}/ChangeLog
-%{_docdir}/%{name}/README
-%{_docdir}/%{name}/java-util-logging.txt
+%{_docdir}/%{name}/README.md
+%{_docdir}/%{name}/java-agent.txt
 
 
 %files -n %{name}-devel
@@ -81,8 +76,54 @@ rm -vf %{buildroot}%{_libdir}/*.la
 %{_docdir}/%{name}/examples/*
 
 %changelog
-* Thu May 12 2016 François Cami <fcami@fedoraproject.org> - 2.4.1-1.1
-- Fix aarch64 FTBFS 
+* Wed Aug 02 2017 Michael Jeanson <mjeanson@efficios.com> - 2.10.0-1
+- New upstream release
+
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 2.9.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Thu Jun 22 2017 Michael Jeanson <mjeanson@efficios.com> - 2.9.1-1
+- New upstream release
+
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 2.9.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Wed Nov 30 2016 Michael Jeanson <mjeanson@efficios.com> - 2.9.0-1
+- New upstream release
+
+* Wed Jun 22 2016 Michael Jeanson <mjeanson@efficios.com> - 2.8.1-2
+- Re-add rpath removing
+- Fix spelling errors
+
+* Tue Jun 21 2016 Michael Jeanson <mjeanson@efficios.com> - 2.8.1-1
+- New upstream release
+
+* Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 2.6.2-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Thu Aug 6 2015 Suchakra Sharma <suchakra@fedoraproject.org> - 2.6.2-2
+- Remove remaining BR for SystemTap SDT and add python as a BR
+
+* Thu Jul 23 2015 Michael Jeanson <mjeanson@gmail.com> - 2.6.2-1
+- New upstream release
+- Drop SystemTap SDT support
+- Remove patches applied upstream
+
+* Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.5.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Tue Dec  9 2014 Peter Robinson <pbrobinson@fedoraproject.org> 2.5.1-2
+- Add patch to fix aarch64 support
+
+* Mon Nov 03 2014 Suchakra Sharma <suchakra@fedoraproject.org> - 2.5.1-1
+- New upstream release
+- Update URL
+
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.4.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.4.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
 * Tue May 20 2014 Yannick Brosseau <yannick.brosseau@gmail.com> - 2.4.1-1
 - New upstream bugfix release
@@ -132,6 +173,7 @@ rm -vf %{buildroot}%{_libdir}/*.la
 * Tue Jun 19 2012 Yannick Brosseau <yannick.brosseau@gmail.com> - 2.0.4-1
 - New upstream release
 - Updates from review comments
+
 * Thu Jun 14 2012 Yannick Brosseau <yannick.brosseau@gmail.com> - 2.0.3-1
 - New package, inspired by the one from OpenSuse
 
